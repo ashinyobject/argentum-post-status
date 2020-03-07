@@ -1,0 +1,37 @@
+{
+  "name": "argentum-post-status",
+  "version": "1.0.0",
+  "description": "Custom Post Status",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/silverscreenin/argentum-post-status.git"
+  },
+  "author": "Silverscreen Media Inc.",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/silverscreenin/argentum-post-status/issues"
+  },
+  "homepage": "https://github.com/silverscreenin/argentum-post-status#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.7",
+    "@babel/preset-env": "^7.8.7",
+    "@babel/preset-react": "^7.8.3",
+    "@wordpress/babel-preset-default": "^4.10.0",
+    "babel-preset-minify": "^0.5.1",
+    "css-loader": "^3.4.2",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "node-sass": "^4.13.1",
+    "sass-loader": "^8.0.2",
+    "webpack": "^4.42.0"
+  },
+  "dependencies": {
+    "babel-loader": "^8.0.6",
+    "babel-preset-react": "^6.24.1",
+    "webpack-cli": "^3.3.11"
+  }
+}

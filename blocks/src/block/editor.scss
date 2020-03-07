@@ -1,0 +1,24 @@
+/*
+Plugin Name: Argentum Post Status
+* SCSS File For Argentum Post Status
+* Includes any admin styles needed
+*/
+.argentum-extended-post-status {
+   flex-flow: row wrap;
+   > * {
+     flex-basis: 45%;
+   }
+ 
+   .argentum-extended-post-status-note {
+     flex-basis: 100%;
+   }
+ }
+ .argentum-extended-post-status-switch-to-draft {
+   flex-basis: 100%;
+ }
+ 
+ .argentum-extended-post-status-publish {
+   > * {
+     flex-basis: 100%;
+   }
+ }

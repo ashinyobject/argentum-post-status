@@ -7,8 +7,14 @@ namespace ArgentumPostStatus\Classes;
 require_once get_template_directory() . '/inc/post-status-core-fix.php';
 
 class PostStatus {
+   private $statuses;
+   private $optionName;
    
-  public function __construct($statuses) {
+  public function __construct($optionName) {
+     $this->optionName = $optionName;
+     
+
+
     add_action( 'init',  array( $this, 'argentum_generate_post_status'), 0 );
 
 
@@ -27,19 +33,57 @@ class PostStatus {
 
         }
 
-      $this->statuses = $statuses;
-      $this->status_names = array();
-      $this->PostStatusCoreFix = new ArgentumPostStatusCoreFix($statuses);
    }
    public function argentum_admin_load_post_status_scripts($hook)
    {
       if ( 'post.php' == $hook ) {
-         wp_enqueue_script( 'argentum-post-status', get_template_directory_uri() . '/admin/assets/js/post-status.js',array('argentum-post-edit'), false, 1);
+         wp_enqueue_script( 'argentum-post-status-script', ARGENTUM_POST_STATUS_URL . 'assets/js/argentum-post-status-script.js',array('argentum-post-edit'), false, 1);
       }
+      if ( $this->is_block_editor() ) 
+      {
+         wp_enqueue_style(
+            'argetum-post-status-block-style',
+            ARGENTUM_POST_STATUS_URL.'/blocks/dist/blocks.editor.build.css',
+            array(),
+            ARGENTUM_POST_STATUS_VERSION
+         );
+         wp_enqueue_script(
+			   'argentum-post-status-block-script',
+			   ARGENTUM_POST_STATUS_URL.'/blocks/dist/blocks.build.js',
+			   array( 'wp-blocks', 'wp-element', 'wp-edit-post', 'wp-plugins', 'wp-components' ),
+		      ARGENTUM_POST_STATUS_VERSION
+			);
+      }
+
+      $blockStatuses = 
+
+      wp_localize_script( 'argentum-post-status-block-script', 'ArgentumPostStatuses', array_values( array_merge($this->getCorePostStatuses(), $this->statuses )) );
+
    }
+
+   private function getCorePostStatuses()
+   {
+     return array(
+				array(
+					'slug'     => 'draft',
+					'singular' => 'Draft',
+					'plural'   => 'Drafts',
+				),
+				array(
+					'slug'     => 'pending',
+					'singular' => 'Pending',
+					'plural'   => 'Pending Posts',
+            ),
+            
+
+			);
+	}
 
   
    public function argentum_generate_post_status() {
+     
+     
+     $this->statuses = self::get_custom_post_statuses($this->optionName);
       foreach ($this->statuses as $status )
       {
          $status_slug = $status['slug'];
@@ -57,6 +101,31 @@ class PostStatus {
          $this->status_names[$status_slug] = $status_singular;
          
       }
+  }
+  private function get_custom_post_statuses($optionName)
+  {
+     
+    $statuses = array();
+    
+     $i = 0;
+     if( have_rows($optionName,'option') )
+     {
+
+         while(have_rows($optionName,'option') )
+         {
+            the_row();
+            $name = get_sub_field('custom_status_name','option');
+            $plural = get_sub_field('custom_status_name_plural');
+            $slug = \sanitize_title($name);
+            $statuses[$i++] = array('slug' => $slug, 'singular' => $name, 'plural'=>$plural);
+            
+            
+         }
+      }
+      
+      return($statuses);
+
+
   }
 
    public function argentum_add_post_status_to_dropdown($post)
@@ -236,21 +305,26 @@ class PostStatus {
       return 'text/html';
    }
 
+   /**
+	 * Helper function to determine whether we're running WP 5.0.
+	 *
+	 * @return boolean
+	 */
+	private function is_at_least_wp_50() {
+		return version_compare( get_bloginfo( 'version' ), '5.0', '>=' );
+	}
+
+	/**
+	 * Whether or not we are in the block editor.
+	 *
+	 * @return boolean
+	 */
+	public function is_block_editor() {
+		if ( self::is_at_least_wp_50() && function_exists( 'get_current_screen' ) ) {
+			return get_current_screen()->is_block_editor();
+		}
+
+		return false;
+	}
+
 }
-   
-$statuses = array (
-   array('slug' => 'pitch', 'singular' => 'Pitch', 'plural' => 'Pitches'),
-   array('slug' => 'assigned', 'singular' => 'Assigned', 'plural' => 'Assigned Stories'),
-   array('slug' => 'ready-for-subbing', 'singular' => 'Ready to Sub', 'plural' => 'Ready To Sub Posts'),
-   array('slug' => 'ready-to-publish', 'singular' => 'Ready To Publish', 'plural' => 'Ready To Publish Stories'),
-   array('slug' => 'interview-scheduled', 'singular' => 'Interview Scheduled', 'plural' => 'Interviews Scheduled'),
-   array('slug' => 'no-publish', 'singular' => 'No Publish', 'plural' => 'No Publish Posts')
-);
-
-global $custom_post_statuses;
-$custom_post_statuses = new ArgentumPostStatuses($statuses);
-
-
-
-
-
