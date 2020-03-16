@@ -33,13 +33,10 @@ var extractEditorSCSS = new ExtractText({
    context: __dirname,
    devtool: debug ? 'inline-sourcemap' : null,
    mode: debug ? 'development' : 'production',
-   entry: {
-     block: './assets/blocks/src/blocks.js',
-     legacy:'./assets/legacy/legacy.js'
-   },
+   entry: './blocks/src/blocks.js',
    output: {
-     path: __dirname + '/assets/dist/',
-     filename: 'argentum-post-status-[name].js'
+     path: __dirname + '/blocks/dist/',
+     filename: 'blocks.build.js'
      
    },
    module: {

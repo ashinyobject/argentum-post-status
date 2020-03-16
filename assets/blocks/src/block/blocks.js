@@ -1,15 +1,14 @@
 import './editor.scss';
 import './style.scss';
+
 let { PluginPostStatusInfo } = wp.editPost;
 let { registerPlugin } = wp.plugins;
 let { subscribe, dispatch, select, withSelect, withDispatch } = wp.data;
 let { compose } = wp.compose;
 let { SelectControl } = wp.components;
 
-/**
- * Map Custom Statuses as options for SelectControl
- */
-let statuses = window.ArgentumPostStatuses.map( s => ({ label: s.singular, value: s.slug }) );
+let statuses = window.argentumPostStatusBlockData['allStatuses'].map( s => ({ label: s.name, value: s.slug }) );
+let defaultStatus = argentumPostStatusBlockData['defaultStatus'];
 
 /**
  * Subscribe to changes so we can set a default status and update a button's text.
@@ -22,7 +21,15 @@ subscribe( function () {
 		return;
 	}
 
-		// If the save button exists, let's update the text if needed.
+	// For new posts, we need to force the default custom status.
+	const isCleanNewPost = select( 'core/editor' ).isCleanNewPost();
+	if ( isCleanNewPost ) {
+		dispatch( 'core/editor' ).editPost( {
+			status: defaultStatus
+		} );
+	}
+
+	// If the save button exists, let's update the text if needed.
 	maybeUpdateButtonText( document.querySelector( '.editor-post-save-draft' ) );
 
 	// The post is being saved, so we need to set up an observer to update the button text when it's back.
@@ -69,7 +76,7 @@ let ArgentumPostStatuses = ( { onUpdate, status } ) => (
   <PluginPostStatusInfo
     className={ 'argentum-extended-post-status argentum-extended-post-status-${status}' }
   >
-    <h4>{ status !== 'publish' ? 'Post Status': 'Custom Post Status Disabled.' }</h4>
+    <h4>{ status !== 'publish' ? 'Post Status': 'Post Status Disabled.' }</h4>
 
     { status !== 'publish' ? <SelectControl
       label=""
@@ -79,7 +86,7 @@ let ArgentumPostStatuses = ( { onUpdate, status } ) => (
     /> : null }
 
     <small className="argentum-extended-post-status-note">
-      { status !== 'publish' ? `Note: this will override all status settings above.`: 'Un.'}
+      { status !== 'publish' ? 'Note: this will override all status settings above': 'To select a custom status, please unpublish the content first.'}
     </small>
   </PluginPostStatusInfo>
 );
@@ -106,7 +113,6 @@ let plugin = compose(
 /**
  * Kick it off
  */
-registerPlugin( 'argentum-post-status', {
-  icon: 'argentum-post-status',
+registerPlugin( 'argentum-custom-status', {
   render: plugin
 } );
