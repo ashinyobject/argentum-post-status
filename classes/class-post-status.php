@@ -4,8 +4,6 @@
 Post Statuses for the Argentum Theme
 */
 namespace ArgentumPostStatus\Classes;
-require_once get_template_directory() . '/inc/post-status-core-fix.php';
-
 class PostStatus {
    private $customPostStatusesAssociative;
    private $customPostStatuses;
