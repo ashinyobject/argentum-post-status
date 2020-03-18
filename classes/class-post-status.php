@@ -22,12 +22,8 @@ class PostStatus {
      $this->registerCustomPostStatuses($this->customPostStatusesAssociative);
      $this->setAllPostStatuses();
      new PostStatusCoreFixes($this->customPostStatusesAssociative);
-
-     
-
-         
-         add_action( 'admin_enqueue_scripts', array( $this, 'adminEnqueueScripts' ) );
-         //add_action( 'transition_post_status', array( $this, 'argentum_notify_editors_by_email' ), 10, 3 );
+     add_action( 'admin_enqueue_scripts', array( $this, 'adminEnqueueScripts' ) );
+     //add_action( 'transition_post_status', array( $this, 'argentum_notify_editors_by_email' ), 10, 3 );
 
 
    }
@@ -221,7 +217,7 @@ class PostStatus {
          );
       }
    }
-   private function getAllPostStatuses($type)
+   public function getAllPostStatuses($type)
    {
       if ($type == 'array')
       {
@@ -232,7 +228,7 @@ class PostStatus {
          return $this->allPostStatusesAssociative;
       }
    }
-   private function getCustomPostStatuses($type)
+   public function getCustomPostStatuses($type)
    {
       if ($type == 'array')
       {

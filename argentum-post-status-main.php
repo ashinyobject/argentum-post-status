@@ -10,28 +10,33 @@ define('ARGENTUM_POST_STATUS_URL' , plugins_url( '/', __FILE__ ) );
 
 class ArgentumPostStatus
 {
-   public static $statuses;
+   private static $allStatuses;
+
    
     public function __construct()
     {
-      $this->addOptionsPage();
-      add_action( 'init',  array($this, 'initializeModules'), 0 );
+      $this->addMainOptionsPage();
+      add_action( 'acf/init',  array($this, 'initializeModules') );
+      add_action('acf/input/admin_head', array($this,'hideEmailLabel'));
 
-     
-        
-        
-
-      
     }
+
+    
+
     public function initializeModules()
     {
-      new Classes\PostStatus('custom-post-statuses');
+      $postStatus = new Classes\PostStatus('custom-post-statuses');
+      self::$allStatuses = $postStatus->getAllPostStatuses('array');
+      $this->addEmailOptionsPage();
+      $emailNotifier = new Classes\EmailNotifier(self::$allStatuses);
+
       
 
     }
 
-    public function addOptionsPage()
+    public function addMainOptionsPage()
     {
+      // Read from settings to get value of custom post statuses
       if( function_exists('\acf_add_options_page') ) {
 	
          acf_add_options_page(array(
@@ -39,7 +44,6 @@ class ArgentumPostStatus
             'menu_title'	=> 'Custom Post Status',
             'menu_slug' 	=> 'custom-post-status-settings',
             'capability'	=> 'edit_posts',
-            'parent_slug'  => 'options-general.php',
             'redirect'		=> false
          ));
 
@@ -144,70 +148,176 @@ class ArgentumPostStatus
 
       }
 
-      acf_add_local_field_group(array(
-         'key' => 'group_5e6eac46e6a61',
-         'title' => 'Email Notifications For Custom Post Status',
-         'fields' => array(
-            array(
-               'key' => 'field_5e6eac5a704d2',
-               'label' => 'Emails To Notify',
-               'name' => 'argentum-post-status-email-address',
-               'type' => 'repeater',
-               'instructions' => 'Enter Email Addresses of everyone that needs to be notified when a post status changes. These emails will be notified for every post.',
-               'required' => 0,
-               'conditional_logic' => 0,
-               'wrapper' => array(
-                  'width' => '',
-                  'class' => '',
-                  'id' => '',
-               ),
-               'collapsed' => '',
-               'min' => 0,
-               'max' => 0,
-               'layout' => 'table',
-               'button_label' => 'Add Another Email',
-               'sub_fields' => array(
-                  array(
-                     'key' => 'field_5e6ead14704d4',
-                     'label' => 'Email Addresses To Notify',
-                     'name' => 'argentum-post-status-email-address',
-                     'type' => 'email',
-                     'instructions' => '',
-                     'required' => 0,
-                     'conditional_logic' => 0,
-                     'wrapper' => array(
-                        'width' => '',
-                        'class' => '',
-                        'id' => '',
+     
+         
+    }
+    public function addEmailOptionsPage()
+    {
+       $choices = self::$allStatuses;
+       $choices['any'] = 'Any';
+      // Read from settings to get value of custom post statuses
+      if( function_exists('\acf_add_options_page') ) {
+	
+         acf_add_options_sub_page(array(
+            'page_title' 	=> 'Email Notifications On Post Status Change',
+            'menu_title'	=> 'Email Notifications',
+            'menu_slug' 	=> 'email-notification-settings',
+            'capability'	=> 'edit_posts',
+            'parent_slug'  => 'custom-post-status-settings',
+            'redirect'		=> false
+         ));
+
+         acf_add_local_field_group(array(
+            'key' => 'group_5e70ff5a05fdc',
+            'title' => 'Post Status Change Email Notifications',
+            'fields' => array(
+               array(
+                  'key' => 'field_5e71002316774',
+                  'label' => 'Notification Group',
+                  'name' => 'post-status-change-notification-group',
+                  'type' => 'repeater',
+                  'instructions' => '',
+                  'required' => 0,
+                  'conditional_logic' => 0,
+                  'wrapper' => array(
+                     'width' => '',
+                     'class' => '',
+                     'id' => '',
+                  ),
+                  'collapsed' => '',
+                  'min' => 1,
+                  'max' => 0,
+                  'layout' => 'table',
+                  'button_label' => 'Add More Notifiers',
+                  'sub_fields' => array(
+                     array(
+                        'key' => 'field_5e71005016775',
+                        'label' => 'Current Post Status',
+                        'name' => 'argentum-post-status-current-status',
+                        'type' => 'select',
+                        'instructions' => '',
+                        'required' => 0,
+                        'conditional_logic' => 0,
+                        'wrapper' => array(
+                           'width' => '',
+                           'class' => '',
+                           'id' => '',
+                        ),
+                        'choices' => $choices,
+                        'default_value' => array(
+                        ),
+                        'allow_null' => 0,
+                        'multiple' => 0,
+                        'ui' => 0,
+                        'return_format' => 'value',
+                        'ajax' => 0,
+                        'placeholder' => '',
                      ),
-                     'default_value' => '',
-                     'placeholder' => 'yourname@silverscreen.in',
-                     'prepend' => '',
-                     'append' => '',
+                     array(
+                        'key' => 'field_5e71014616776',
+                        'label' => 'New Post Status',
+                        'name' => 'argentum-post-status-new-status',
+                        'type' => 'select',
+                        'instructions' => '',
+                        'required' => 0,
+                        'conditional_logic' => 0,
+                        'wrapper' => array(
+                           'width' => '',
+                           'class' => '',
+                           'id' => '',
+                        ),
+                        'choices' => $choices,
+                        'default_value' => array(
+                        ),
+                        'allow_null' => 0,
+                        'multiple' => 0,
+                        'ui' => 0,
+                        'return_format' => 'value',
+                        'ajax' => 0,
+                        'placeholder' => '',
+                     ),
+                     array(
+                        'key' => 'field_5e71016716777',
+                        'label' => 'Emails To Notify',
+                        'name' => 'argentum-post-status-emails-to-notify',
+                        'type' => 'repeater',
+                        'instructions' => '',
+                        'required' => 0,
+                        'conditional_logic' => 0,
+                        'wrapper' => array(
+                           'width' => '',
+                           'class' => '',
+                           'id' => '',
+                        ),
+                        'collapsed' => '',
+                        'min' => 1,
+                        'max' => 0,
+                        'layout' => 'table',
+                        'button_label' => 'Add More Email Addresses',
+                        'sub_fields' => array(
+                           array(
+                              'key' => 'field_5e71017f16778',
+                              'label' => 'Email Address',
+                              'name' => 'argentum-post-status-email-address',
+                              'type' => 'email',
+                              'instructions' => '',
+                              'required' => 0,
+                              'conditional_logic' => 0,
+                              'wrapper' => array(
+                                 'width' => '',
+                                 'class' => '',
+                                 'id' => '',
+                              ),
+                              'default_value' => '',
+                              'placeholder' => '',
+                              'prepend' => '',
+                              'append' => '',
+                           ),
+                        ),
+                     ),
                   ),
                ),
             ),
-         ),
-         'location' => array(
-            array(
+            'location' => array(
                array(
-                  'param' => 'options_page',
-                  'operator' => '==',
-                  'value' => 'custom-post-status-settings',
+                  array(
+                     'param' => 'options_page',
+                     'operator' => '==',
+                     'value' => 'email-notification-settings',
+                  ),
                ),
             ),
-         ),
-         'menu_order' => 0,
-         'position' => 'normal',
-         'style' => 'default',
-         'label_placement' => 'top',
-         'instruction_placement' => 'label',
-         'hide_on_screen' => '',
-         'active' => true,
-         'description' => '',
-      ));
+            'menu_order' => 0,
+            'position' => 'normal',
+            'style' => 'default',
+            'label_placement' => 'top',
+            'instruction_placement' => 'label',
+            'hide_on_screen' => '',
+            'active' => true,
+            'description' => '',
+         ));
+        
+
+
+    
+
+
+      }
+
+     
          
     }
+
+    public function hideEmailLabel() {
+      ?>
+      <style type="text/css">
+   
+         .acf-field-5e71016716777 > div > div > table > thead {display: none;}
+   
+      </style>
+      <?php
+   }
+   
 
    
        
