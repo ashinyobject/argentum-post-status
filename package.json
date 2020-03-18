@@ -33,7 +33,7 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "sass": "^1.26.2"
+    "sass": "^1.26.3"
   },
   "bugs": {
     "url": "https://github.com/silverscreenin/argentum-post-status/issues"
