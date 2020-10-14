@@ -63,18 +63,19 @@ class EmailNotifier {
       {
          return;
       }
-      if ($newStatus == 'auto_draft')
+      if (!in_array($newStatus, array_keys($this->allPostStatuses)))
       {
          return;
       }
-      //If a published post is updated, email users every time
-      if ($newStatus != 'publish' && $newStatus == $oldStatus) 
+      //If a published post is updated, email users every time, otherwise return
+      if ($newStatus == $oldStatus) 
       {
-         return;
+         if ($newStatus != 'publish')
+            return;
       }
       $articleIndex = intval(get_post_meta( $post->ID, 'silverscreenArticleIndex', true ));
       $currentDate = date("d-M-Y");
-      $postID = $articleIndex.$currentDate.'#';
+      $postID = $articleIndex.'-'.$currentDate.'#';
       $emailAddresses = array();
 
       foreach ($this->notifiers as $notifier)
@@ -126,13 +127,13 @@ class EmailNotifier {
             $body .= $authorname.'<br>';
          }
          $body .= '<p>Edit Link: <a href = "' . get_edit_post_link($post->ID). '">'.get_edit_post_link($post->ID).'</a></p>';
-         if ($statuses[$newStatus] == 'publish') {
+         if ($newStatus == 'publish') {
             $body .= '<p>Published Link: <a href = "' . get_permalink($post->ID). '">'.get_permalink($post->ID).'</a></p>';
          }
          else {
             $body .= '<p>View Link: <a href = "' . get_permalink($post->ID). '">'.get_permalink($post->ID).'</a></p>';
          }
-        
+     
          $to = array_merge($authorEmails, $emailAddresses);
          
          add_filter( 'wp_mail_content_type', array($this,'setEmailContentType') );
