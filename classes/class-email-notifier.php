@@ -63,6 +63,10 @@ class EmailNotifier {
       {
          return;
       }
+      if ($newStatus == 'auto_draft')
+      {
+         return;
+      }
       //If a published post is updated, email users every time
       if ($newStatus != 'publish' && $newStatus == $oldStatus) 
       {
