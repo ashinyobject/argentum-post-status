@@ -59,8 +59,6 @@ class EmailNotifier {
    public function postStatusChangeEmailNotifier($newStatus, $oldStatus, $post)
    {
       $postTypes = get_field('customPostStatusApplicablePostTypes','option');
-      var_dump($postTypes);
-      var_dump($post>post_type);
       if (!in_array($post->post_type,$postTypes))
       {
          return;
