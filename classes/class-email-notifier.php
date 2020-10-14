@@ -50,29 +50,48 @@ class EmailNotifier {
 
 
   }
+
+   public function setEmailContentType()
+   {
+      return 'text/html';
+   }
    
    public function postStatusChangeEmailNotifier($newStatus, $oldStatus, $post)
    {
+      $postTypes = get_field('customPostStatusApplicablePostTypes','option');
+      var_dump($postTypes);
+      var_dump($post>post_type);
+      if (!in_array($post->post_type,$postTypes))
+      {
+         return;
+      }
       //If a published post is updated, email users every time
       if ($newStatus != 'publish' && $newStatus == $oldStatus) 
       {
          return;
       }
+      $articleIndex = intval(get_post_meta( $post->ID, 'silverscreenArticleIndex', true ));
+      $currentDate = date("d-M-Y");
+      $postID = $articleIndex.$currentDate.'#';
+      $emailAddresses = array();
+
       foreach ($this->notifiers as $notifier)
       {
          if ($notifier['oldStatus'] == $oldStatus || $notifier['oldStatus'] == 'any')
          {
             if ($notifier['newStatus'] == $newStatus || $notifier['newStatus'] == 'any')
             {
-               $emailAddresses = $notifier['emailAddreses'];
-               $this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post);
+               $emailAddresses = array_merge($emailAddresses, $notifier['emailAddreses']);
+              
             }
          }
 
       }
+      $emailAddresses = array_unique($emailAddresses);
+      $this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID);
       return;
    }
-   private function sendEmail($newStatus, $oldStatus, $emailAddresses, $post)
+   private function sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID)
    {      
       $statuses = $this->allPostStatuses;
       // Get emails of authors
@@ -87,33 +106,39 @@ class EmailNotifier {
          $authorNames[$i] = get_the_author_meta('display_name',$authorid);
          $i++;
       }
+      $newStatusString = $statuses[$newStatus];
+      $oldStatusString = $statuses[$oldStatus];
+      if ($newStatusString == $oldStatusString) {
+         $newStatusString = 'Revision After Publication';
+      }
          $i = 0;
          $siteTitle = '[ '.get_bloginfo( 'name' ).' ] ';
-         $subject = $siteTitle . 'Article Moved Into ' . $statuses[$newStatus] . ' State: "' . $post->post_title. '"';
-         $body = '<p>Post Titled <strong>'. $post->post_title . '</strong> ID: ' . $post->ID . ' was moved to the <strong>'. $statuses[$newStatus] .  '</strong> State by '. $this->getTheModifiedAuthorByID($post->ID) . ' on '. get_post_modified_time('l jS F Y h:i:s A',false, $post->ID).". </p>";
-         $body .= "<p> {$statuses[$oldStatus]} => {$statuses[$newStatus]} </p>";
+         $subject = $siteTitle . 'Article Moved Into [' . $newStatusString . '] State: "' . $post->post_title. '"';
+         $body = '<p>Post Titled <strong>'. $post->post_title . '</strong> ID: ' . $post->ID . ' was moved to the <strong>'. $newStatusString .  '</strong> State by '. $this->getTheModifiedAuthorByID($post->ID) . ' on '. get_post_modified_time('l jS F Y h:i:s A',false, $post->ID).". </p>";
+         $body .= "<p> {$oldStatusString} => {$newStatusString} </p>";
          $body .= '<p> <strong>Post Details</strong> </p>';
+         $body .= '<p>PostId:'.$postID.'</p>';
          $body .= '<strong><em>Authors</em></strong> <br>';
          foreach ($authorNames as $authorname) 
          {
             $body .= $authorname.'<br>';
          }
          $body .= '<p>Edit Link: <a href = "' . get_edit_post_link($post->ID). '">'.get_edit_post_link($post->ID).'</a></p>';
-         $body .= '<p>View Link: <a href = "' . get_permalink($post->ID). '">'.get_permalink($post->ID).'</a></p>';
+         if ($statuses[$newStatus] == 'publish') {
+            $body .= '<p>Published Link: <a href = "' . get_permalink($post->ID). '">'.get_permalink($post->ID).'</a></p>';
+         }
+         else {
+            $body .= '<p>View Link: <a href = "' . get_permalink($post->ID). '">'.get_permalink($post->ID).'</a></p>';
+         }
         
          $to = array_merge($authorEmails, $emailAddresses);
          
-         add_filter( 'wp_mail_content_type', array($this,'setMailContentType') );
+         add_filter( 'wp_mail_content_type', array($this,'setEmailContentType') );
          wp_mail($to, $subject, $body);
-         remove_filter( 'wp_mail_content_type', array($this,'setMailContentType') );
+         remove_filter( 'wp_mail_content_type', array($this,'setEmailContentType') );
      }
  
 
-
-   public function setMailContentType()
-   {
-      return 'text/html';
-   }
    public function getTheModifiedAuthorByID($ID) {
       $last_id = get_post_meta( $ID, '_edit_last', true );
    

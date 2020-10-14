@@ -5,7 +5,7 @@ Main plugin file
 */
 
 namespace ArgentumPostStatus;
-define('ARGENTUM_POST_STATUS_VERSION','01.00.01');
+define('ARGENTUM_POST_STATUS_VERSION','01.00.02');
 define('ARGENTUM_POST_STATUS_URL' , plugins_url( '/', __FILE__ ) );
 
 class ArgentumPostStatus
@@ -36,6 +36,20 @@ class ArgentumPostStatus
 
     public function addMainOptionsPage()
     {
+
+      $args = array(
+         'public'   => true,
+      );
+      $postTypes = get_post_types($args,'objects');
+      $postTypeChoices = array();
+      foreach ($postTypes as $postType)
+      {
+         if (is_object(($postType)))
+         {
+            $postTypeChoices[$postType->name] = $postType->label;
+         }
+      }
+
       // Read from settings to get value of custom post statuses
       if( function_exists('\acf_add_options_page') ) {
 	
@@ -51,6 +65,28 @@ class ArgentumPostStatus
             'key' => 'group_5e5dbc434f4bd',
             'title' => 'Custom Post Statuses',
             'fields' => array(
+               array(
+                  'key' => 'field_5f84f3382d579',
+                  'label' => 'Applicable Post Types',
+                  'name' => 'customPostStatusApplicablePostTypes',
+                  'type' => 'checkbox',
+                  'instructions' => '',
+                  'required' => 0,
+                  'conditional_logic' => 0,
+                  'wrapper' => array(
+                     'width' => '',
+                     'class' => '',
+                     'id' => '',
+                  ),
+                  'choices' => $postTypeChoices,
+                  'allow_custom' => 1,
+                  'default_value' => array(
+                  ),
+                  'layout' => 'vertical',
+                  'toggle' => 0,
+                  'return_format' => 'value',
+                  'save_custom' => 0,
+               ),
                array(
                   'key' => 'field_5e5dbc5502ec1',
                   'label' => 'Post Statuses',
@@ -70,6 +106,25 @@ class ArgentumPostStatus
                   'layout' => 'table',
                   'button_label' => '',
                   'sub_fields' => array(
+                     array(
+                        'key' => 'field_5e5dbd6bf69e3',
+                        'label' => 'Custom Status Slug',
+                        'name' => 'custom_status_slug',
+                        'type' => 'text',
+                        'instructions' => '',
+                        'required' => 0,
+                        'conditional_logic' => 0,
+                        'wrapper' => array(
+                           'width' => '',
+                           'class' => '',
+                           'id' => '',
+                        ),
+                        'default_value' => '',
+                        'placeholder' => '',
+                        'prepend' => '',
+                        'append' => '',
+                        'maxlength' => '',
+                     ),
                      array(
                         'key' => 'field_5e5dbd6b969f9',
                         'label' => 'Custom Status Name',
@@ -187,7 +242,7 @@ class ArgentumPostStatus
                   'collapsed' => '',
                   'min' => 1,
                   'max' => 0,
-                  'layout' => 'table',
+                  'layout' => 'row',
                   'button_label' => 'Add More Notifiers',
                   'sub_fields' => array(
                      array(

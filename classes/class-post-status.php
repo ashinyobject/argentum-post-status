@@ -21,7 +21,6 @@ class PostStatus {
      $this->setAllPostStatuses();
      new PostStatusCoreFixes($this->customPostStatusesAssociative);
      add_action( 'admin_enqueue_scripts', array( $this, 'adminEnqueueScripts' ) );
-     //add_action( 'transition_post_status', array( $this, 'argentum_notify_editors_by_email' ), 10, 3 );
 
 
    }
@@ -87,9 +86,13 @@ class PostStatus {
          while(have_rows($optionName,'option') )
          {
             the_row();
+            
             $name = get_sub_field('custom_status_name','option');
-            $plural = get_sub_field('custom_status_name_plural');
-            $slug = \sanitize_title($name);
+            $plural = get_sub_field('custom_status_name_plural','option');
+            $slug = get_sub_field('custom_status_slug','option');
+            if (empty($slug)) {
+               $slug = \sanitize_title($name);
+            }
             $statuses[$i++] = array('slug' => $slug, 'name' => $name, 'plural'=>$plural);
             
             
@@ -99,81 +102,6 @@ class PostStatus {
 
 
   }
-
-    
-   public function argentum_notify_editors_by_email($new_status, $old_status, $post)
-   {
-      if ($new_status == $old_status)
-      {
-         return;
-      }
-      $editors = ['sohini', 'sinndhuja', 'admin'];
-      if ($new_status == 'ready-for-subbing' || $new_status == 'publish' ) 
-      {
-         // Notify authors and editors
-         $coauthors =  get_coauthors( $post->ID );
-         $authoremails = array();
-         $authornames = array();
-         $editoremails = array();
-         $editornames = array();
-         $i = 0;
-         foreach ($coauthors as $coauthor) 
-         {
-            $authorid = $coauthor->ID;
-            $authoremails[$i] = get_the_author_meta('user_email',$authorid);
-            $authornames[$i] = get_the_author_meta('display_name',$authorid);
-            $i++;
-         }
-         
-         $i = 0;
-         foreach ($editors as $editor)
-         {
-            $user = get_user_by('slug',$editor);
-            $authorid = $user->ID;
-            $editoremails[$i] = get_the_author_meta('user_email',$authorid);
-            $editornames[$i] = get_the_author_meta('display_name',$authorid);
-            $i++;
-         }
-         $site_title = '[ '.get_bloginfo( 'name' ).' ] ';
-
-         $statuses = $this->getAllPostStatuses();
-
-         if ($new_status == 'publish')
-         {
-            $subject = $site_title . 'Article Published: ' . ' "' . $post->post_title. '"';
-            $body = '<p>Post Titled'. $post->post_title . 'ID: ' . $post->ID . 'was published by '. get_the_modified_author() . 'on '. get_post_time('U',false, $post).". </p>";
-         }
-         else if ($new_status == 'ready-for-subbing')
-         {
-            $subject = $site_title . 'Article Ready For Subbing: ' . ' "' . $post->post_title. '"';
-            $body = '<p>Post Titled '. $post->post_title . ' ID: ' . $post->ID . ' is ready to be sub-edited. It was saved at '. get_post_time('l, F j, Y',false, $post).". </p>";
-         }
-
-         $body .= "<p> {$statuses[$old_status]} => {$statuses[$new_status]} </p>";
-         $body .= '<p> <strong>Post Details</strong> </p>';
-         $body .= '<strong><em>Authors</em></strong> <br>';
-         foreach ($authornames as $authorname) 
-         {
-            $body .= $authorname.'<br>';
-         }
-         $body .= '<p>Edit Link: <a href = "' . get_edit_post_link($post->ID). '">'.get_edit_post_link($post->ID).'</a></p>';
-         $body .= '<p>View Link: <a href = "' . get_permalink($post->ID). '">'.get_permalink($post->ID).'</a></p>';
-        
-         $to = array_merge($authoremails, $editoremails);
-         
-         add_filter( 'wp_mail_content_type', array($this,'argentum_set_mail_content_type_html') );
-         wp_mail($to, $subject, $body);
-         remove_filter( 'wp_mail_content_type', array($this,'argentum_set_mail_content_type_html') );
-     }
-   }
-
-  
-
-
-   public function argentum_set_mail_content_type_html()
-   {
-      return 'text/html';
-   }
 
    /**
 	 * Helper function to determine whether we're running WP 5.0.
@@ -201,8 +129,14 @@ class PostStatus {
       $builtinPostStatuses = get_post_statuses();
       //unset($builtinPostStatuses['publish']);
       $customPostStatuses = $this->customPostStatuses;
-
-      $this->allPostStatuses = array_merge($builtinPostStatuses, $customPostStatuses);
+      
+      if (!empty($customPostStatuses)) {
+         $this->allPostStatuses = array_merge($builtinPostStatuses, $customPostStatuses);
+      }
+      else
+      {
+         $this->allPostStatuses = $builtinPostStatuses;
+      }
       $slugs = array_keys($this->allPostStatuses);
       $names = array_values($this->allPostStatuses);
 
