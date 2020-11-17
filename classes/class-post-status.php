@@ -9,6 +9,7 @@ class PostStatus {
    private $customPostStatuses;
    private $allPostStatuses;
    private $allPostStatusesAssociative;
+   private $unpublishedStatusesAssociative;
    private $optionName;
    private $defaultStatus = 'draft';
    private $localizeJavascriptData = array();
@@ -144,20 +145,43 @@ class PostStatus {
       foreach($slugs as $slug)
       {
          $this->allPostStatusesAssociative[] = array(
-            'name' => $names[$i++],
+            'name' => $names[$i],
 				'slug' => $slug
          );
+         if (!($slug == 'publish' || $slug == 'private' )) {
+            $this->unpublishedStatusesAssociative[] = array(
+               'name' => $names[$i],
+               'slug' => $slug
+            );
+         }
+         $i++;
       }
    }
-   public function getAllPostStatuses($type)
+   public function getAllPostStatuses($type,$unpublished=false)
    {
+      
       if ($type == 'array')
       {
-         return $this->allPostStatuses;
+         if ($unpublished)
+         {
+            $allStatuses = $this->allPostStatuses;
+            unset($allStatuses['publish']);
+            return $allStatuses;
+         }
+         else
+         {
+            return $this->allPostStatuses;
+         }
       }
       elseif ($type == 'associative')
       {
-         return $this->allPostStatusesAssociative;
+         if ($unpublished){
+            return $this->unpublishedStatusesAssociative;
+         }
+         else {
+            return $this->allPostStatusesAssociative;
+         }
+
       }
    }
    public function getCustomPostStatuses($type)
@@ -176,7 +200,7 @@ class PostStatus {
    {
       wp_get_current_user() ;
       global $post, $current_user, $pagenow;
-      $allStatuses = $this->getAllPostStatuses('associative');
+      $allStatuses = $this->getAllPostStatuses('associative',true);
       
 
 
@@ -197,8 +221,10 @@ class PostStatus {
             if ( $status['slug'] == $selected ) {
                $selectedName = $status['name'];
             }
+           
          }
       }
+  
       $localizeJavascriptData = array();
       $localizeJavascriptData['allStatuses'] = $allStatuses;
       $localizeJavascriptData['defaultStatus'] = $this->defaultStatus;

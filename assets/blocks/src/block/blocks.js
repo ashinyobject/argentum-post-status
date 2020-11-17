@@ -1,6 +1,7 @@
 import './editor.scss';
 import './style.scss';
 
+let { __ } = wp.i18n;
 let { PluginPostStatusInfo } = wp.editPost;
 let { registerPlugin } = wp.plugins;
 let { subscribe, dispatch, select, withSelect, withDispatch } = wp.data;
@@ -63,8 +64,8 @@ function createButtonObserver( parentNode ) {
 }
 
 function maybeUpdateButtonText( saveButton ) {
-	if ( saveButton && ( saveButton.innerText === 'Save Draft' || saveButton.innerText === 'Save as Pending' ) ) {
-		saveButton.innerText = 'Save';
+	if ( saveButton && ( saveButton.innerText === __( 'Save draft' ) || saveButton.innerText === __( 'Save as pending' ) ) ) {
+		saveButton.innerText = __( 'Save' );
 	}
 }
 

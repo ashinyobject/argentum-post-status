@@ -73,7 +73,7 @@ class EmailNotifier {
          if ($newStatus != 'publish')
             return;
       }
-      $articleIndex = intval(get_post_meta( $post->ID, 'silverscreenArticleIndex', true ));
+      $articleIndex = get_post_meta( $post->ID, 'silverscreenArticleIndex', true );
       $currentDate = date("d-M-Y");
       $postID = $articleIndex.'-'.$currentDate.'#';
       $emailAddresses = array();
@@ -91,7 +91,7 @@ class EmailNotifier {
 
       }
       $emailAddresses = array_unique($emailAddresses);
-      $this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID);
+      //$this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID);
       return;
    }
    private function sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID)
