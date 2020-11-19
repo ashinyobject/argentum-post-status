@@ -91,7 +91,7 @@ class EmailNotifier {
 
       }
       $emailAddresses = array_unique($emailAddresses);
-      //$this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID);
+      $this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID);
       return;
    }
    private function sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID)
