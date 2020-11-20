@@ -13,7 +13,7 @@ class EmailNotifier {
       $this->allPostStatuses = $allPostStatuses;
       $this->notifiers = $this->extractEmailNotifiers();
       add_action( 'transition_post_status', array( $this, 'postStatusChangeEmailNotifier' ), 10, 3 );
-      add_action('update_post_meta', array( $this, 'articleIndexChangeEmailNotifier' ), 10, 4 );
+      add_action('updateSilverscreenArticleIndex', array( $this, 'articleIndexChangeEmailNotifier' ), 10, 4 );
 
 
    }
@@ -59,6 +59,8 @@ class EmailNotifier {
    
    public function postStatusChangeEmailNotifier($newStatus, $oldStatus, $post)
    {
+      
+
       $postTypes = get_field('customPostStatusApplicablePostTypes','option');
       if (!in_array($post->post_type,$postTypes))
       {
@@ -97,28 +99,16 @@ class EmailNotifier {
       return;
    }
 
-   public function articleIndexChangeEmailNotifier($metaID, $postID, $metaKey, $currentValue)
+   public function articleIndexChangeEmailNotifier($postID, $post, $previousValue, $articleIndex)
    {
-      if ($metaKey != 'silverscreenArticleIndex') {
-         return;
-      }
-
-      $previousValue = get_post_meta( $postID, 'silverscreenArticleIndex', true );
-
-      if ($currentValue == $previousValue) 
-      {
-         return;
-      }
-
-      $post = get_post($postID);
+     
       $postTypes = get_field('customPostStatusApplicablePostTypes','option');
       if (!in_array($post->post_type,$postTypes))
       {
          return;
       }
-     
+    
          
-      $articleIndex = $currentValue;
       $newStatus = $post->post_status;
       $oldStatus = $newStatus;
 
@@ -142,7 +132,8 @@ class EmailNotifier {
       $this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $articleIndex);
       return;
    }
-   private function sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID)
+   
+   private function sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $articleIndex)
    {      
       $statuses = $this->allPostStatuses;
       // Get emails of authors
@@ -174,7 +165,7 @@ class EmailNotifier {
          $body = '<p>Post Titled <strong>'. $post->post_title . '</strong> ID: ' . $post->ID . ' was moved to the <strong>'. $newStatusString .  '</strong> State by '. $this->getTheModifiedAuthorByID($post->ID) . ' on '. get_post_modified_time('l jS F Y h:i:s A',false, $post->ID).". </p>";
          $body .= "<p> {$oldStatusString} => {$newStatusString} </p>";
          $body .= '<p> <strong>Post Details</strong> </p>';
-         $body .= '<p>PostId:'.$postID.'</p>';
+         $body .= '<p>PostId:'.$articleIndex.'</p>';
          $body .= '<strong><em>Authors</em></strong> <br>';
          foreach ($authorNames as $authorname) 
          {
