@@ -13,6 +13,7 @@ class EmailNotifier {
       $this->allPostStatuses = $allPostStatuses;
       $this->notifiers = $this->extractEmailNotifiers();
       add_action( 'transition_post_status', array( $this, 'postStatusChangeEmailNotifier' ), 10, 3 );
+      add_action('update_post_meta', array( $this, 'articleIndexChangeEmailNotifier' ), 10, 4 );
 
 
    }
@@ -68,6 +69,7 @@ class EmailNotifier {
          return;
       }
       //If a published post is updated, email users every time, otherwise return
+      $articleIndex = get_post_meta( $post->ID, 'silverscreenArticleIndex', true );
       if ($newStatus == $oldStatus) 
       {
          if ($newStatus != 'publish')
@@ -94,6 +96,52 @@ class EmailNotifier {
       $this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID);
       return;
    }
+
+   public function articleIndexChangeEmailNotifier($metaID, $postID, $metaKey, $currentValue)
+   {
+      if ($metaKey != 'silverscreenArticleIndex') {
+         return;
+      }
+
+      $previousValue = get_post_meta( $postID, 'silverscreenArticleIndex', true );
+
+      if ($currentValue == $previousValue) 
+      {
+         return;
+      }
+
+      $post = get_post($postID);
+      $postTypes = get_field('customPostStatusApplicablePostTypes','option');
+      if (!in_array($post->post_type,$postTypes))
+      {
+         return;
+      }
+     
+         
+      $articleIndex = $currentValue;
+      $newStatus = $post->post_status;
+      $oldStatus = $newStatus;
+
+      $currentDate = date("d-M-Y");
+      $postID = $articleIndex.'-'.$currentDate.'#';
+      $emailAddresses = array();
+
+      foreach ($this->notifiers as $notifier)
+      {
+         if ($notifier['oldStatus'] == $oldStatus || $notifier['oldStatus'] == 'any')
+         {
+            if ($notifier['newStatus'] == $newStatus || $notifier['newStatus'] == 'any')
+            {
+               $emailAddresses = array_merge($emailAddresses, $notifier['emailAddreses']);
+              
+            }
+         }
+
+      }
+      $emailAddresses = array_unique($emailAddresses);
+      $this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $articleIndex);
+      return;
+   }
    private function sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID)
    {      
       $statuses = $this->allPostStatuses;
@@ -111,9 +159,15 @@ class EmailNotifier {
       }
       $newStatusString = $statuses[$newStatus];
       $oldStatusString = $statuses[$oldStatus];
-      if ($newStatusString == $oldStatusString) {
-         $newStatusString = 'Revision After Publication';
+      if ($newStatus == $oldStatus) {
+         if ($newStatus == 'publish') {
+            $newStatusString = 'Revision After Publication';
+         }
+         else {
+            $newStatusString = 'Article Index Created';
+         }
       }
+      
          $i = 0;
          $siteTitle = '[ '.get_bloginfo( 'name' ).' ] ';
          $subject = $siteTitle . 'Article Moved Into [' . $newStatusString . '] State: "' . $post->post_title. '"';

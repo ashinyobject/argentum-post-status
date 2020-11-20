@@ -5,7 +5,7 @@ Main plugin file
 */
 
 namespace ArgentumPostStatus;
-define('ARGENTUM_POST_STATUS_VERSION','01.00.06');
+define('ARGENTUM_POST_STATUS_VERSION','01.00.07');
 define('ARGENTUM_POST_STATUS_URL' , plugins_url( '/', __FILE__ ) );
 
 class ArgentumPostStatus
