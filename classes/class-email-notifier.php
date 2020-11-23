@@ -113,7 +113,7 @@ class EmailNotifier {
       $oldStatus = $newStatus;
 
       $currentDate = date("d-M-Y");
-      $postID = $articleIndex.'-'.$currentDate.'#';
+      $articleIndex = $articleIndex.'-'.$currentDate.'#';
       $emailAddresses = array();
 
       foreach ($this->notifiers as $notifier)
