@@ -13,7 +13,7 @@ class EmailNotifier {
       $this->allPostStatuses = $allPostStatuses;
       $this->notifiers = $this->extractEmailNotifiers();
       add_action( 'transition_post_status', array( $this, 'postStatusChangeEmailNotifier' ), 10, 3 );
-      add_action('updateSilverscreenArticleIndex', array( $this, 'articleIndexChangeEmailNotifier' ), 10, 4 );
+      add_action('updateSilverscreenArticleIndex', array( $this, 'articleIndexChangeEmailNotifier' ), 10, 3 );
 
 
    }
@@ -99,7 +99,7 @@ class EmailNotifier {
       return;
    }
 
-   public function articleIndexChangeEmailNotifier($postID, $post, $previousValue, $articleIndex)
+   public function articleIndexChangeEmailNotifier($postID, $post, $articleIndex)
    {
      
       $postTypes = get_field('customPostStatusApplicablePostTypes','option');
