@@ -5,7 +5,7 @@ Main plugin file
 */
 
 namespace ArgentumPostStatus;
-define('ARGENTUM_POST_STATUS_VERSION','01.00.09');
+define('ARGENTUM_POST_STATUS_VERSION','01.00.10');
 define('ARGENTUM_POST_STATUS_URL' , plugins_url( '/', __FILE__ ) );
 
 class ArgentumPostStatus
@@ -27,6 +27,7 @@ class ArgentumPostStatus
     {
       $postStatus = new Classes\PostStatus('custom-post-statuses');
       self::$allStatuses = $postStatus->getAllPostStatuses('array');
+      self::$allStatuses['articleIndexChanged'] = 'Article Index Changed';
       $this->addEmailOptionsPage();
       $emailNotifier = new Classes\EmailNotifier(self::$allStatuses);
 

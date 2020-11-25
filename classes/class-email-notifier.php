@@ -22,6 +22,7 @@ class EmailNotifier {
    
     $notifiers = array();
     
+    
      $i = 0;
      if ( have_rows('post-status-change-notification-group','option') )
      {
@@ -43,7 +44,7 @@ class EmailNotifier {
            
             
             $notifiers[$i++] = array('oldStatus' => $oldStatus, 'newStatus' => $destinationStatus, 'emailAddreses' => $emailsArray);
-            
+            $emailsArray = array();
             
          }
       }
@@ -109,11 +110,10 @@ class EmailNotifier {
       }
     
          
-      $newStatus = $post->post_status;
-      $oldStatus = $newStatus;
+      $newStatus = 'articleIndexChanged';
+      $oldStatus = $post->post_status;
 
-      $currentDate = date("d-M-Y");
-      $articleIndex = $articleIndex.'-'.$currentDate.'#';
+      $articleIndex = $articleIndex.'#';
       $emailAddresses = array();
 
       foreach ($this->notifiers as $notifier)
@@ -154,9 +154,7 @@ class EmailNotifier {
          if ($newStatus == 'publish') {
             $newStatusString = 'Revision After Publication';
          }
-         else {
-            $newStatusString = 'Article Index Created';
-         }
+        
       }
       
          $i = 0;
@@ -180,7 +178,7 @@ class EmailNotifier {
          }
      
          $to = array_merge($authorEmails, $emailAddresses);
-         
+
          add_filter( 'wp_mail_content_type', array($this,'setEmailContentType') );
          wp_mail($to, $subject, $body);
          remove_filter( 'wp_mail_content_type', array($this,'setEmailContentType') );
