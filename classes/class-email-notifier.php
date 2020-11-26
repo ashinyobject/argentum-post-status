@@ -78,9 +78,7 @@ class EmailNotifier {
          if ($newStatus != 'publish')
             return;
       }
-      $articleIndex = get_post_meta( $post->ID, 'silverscreenArticleIndex', true );
-      $currentDate = date("d-M-Y");
-      $postID = $articleIndex.'-'.$currentDate.'#';
+      $articleIndex = $articleIndex.'#';
       $emailAddresses = array();
 
       foreach ($this->notifiers as $notifier)
@@ -96,7 +94,7 @@ class EmailNotifier {
 
       }
       $emailAddresses = array_unique($emailAddresses);
-      $this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $postID);
+      $this->sendEmail($newStatus, $oldStatus, $emailAddresses, $post, $articleIndex);
       return;
    }
 
