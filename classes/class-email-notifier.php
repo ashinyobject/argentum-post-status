@@ -13,7 +13,9 @@ class EmailNotifier {
       $this->allPostStatuses = $allPostStatuses;
       $this->notifiers = $this->extractEmailNotifiers();
       add_action( 'transition_post_status', array( $this, 'postStatusChangeEmailNotifier' ), 10, 3 );
-      add_action('updateSilverscreenArticleIndex', array( $this, 'articleIndexChangeEmailNotifier' ), 10, 3 );
+      //add_action('updateSilverscreenArticleIndex', array( $this, 'articleIndexChangeEmailNotifier' ), 10, 3 );
+      add_action('added_post_meta', array( $this, 'articleIndexChangeEmailNotifier' ), 10, 4 );
+      add_action('updated_post_meta', array( $this, 'articleIndexChangeEmailNotifier' ), 10, 4 );
 
 
    }
@@ -60,7 +62,12 @@ class EmailNotifier {
    
    public function postStatusChangeEmailNotifier($newStatus, $oldStatus, $post)
    {
-      
+      $postID = $post->ID;
+      if ( $parentID = wp_is_post_revision( $postID ) ) {
+        $postID = $parentID;
+        $post = get_post($postID);
+      }
+     
 
       $postTypes = get_field('customPostStatusApplicablePostTypes','option');
       if (!in_array($post->post_type,$postTypes))
@@ -98,10 +105,20 @@ class EmailNotifier {
       return;
    }
 
-   public function articleIndexChangeEmailNotifier($postID, $post, $articleIndex)
+   public function articleIndexChangeEmailNotifier($metaID, $postID, $metaKey, $articleIndex)
    {
-     
+      
+      if ( $parentID = wp_is_post_revision( $postID ) ) {
+        $postID = $parentID;
+      }
+
+      if ($metaKey != 'silverscreenArticleIndex') {
+         return;
+      }
+      
       $postTypes = get_field('customPostStatusApplicablePostTypes','option');
+      $post = get_post($postID);
+
       if (!in_array($post->post_type,$postTypes))
       {
          return;
