@@ -124,11 +124,18 @@ class EmailNotifier {
          return;
       }
     
+      if (!preg_match('#^[A-Za-z]\d+$#',$articleIndex)) {
+         return;
+       }
          
       $newStatus = 'articleIndexChanged';
       $oldStatus = $post->post_status;
 
-      $articleIndex = $articleIndex.'#';
+      
+      $postDate = $this->getPostCreatedDate($postID);
+      $articleIndex = $articleIndex.':'.$postDate.'#';
+     
+
       $emailAddresses = array();
 
       foreach ($this->notifiers as $notifier)
@@ -215,6 +222,29 @@ class EmailNotifier {
            */
           return apply_filters( 'the_modified_author', $last_user->display_name );
       }
+  }
+
+  private function getPostCreatedDate($postID) {
+     //Get All Revisions
+     $args = array(
+      'order'         => 'ASC',
+      'orderby'       => 'date ID',
+      'check_enabled' => true,
+      'posts_per_page' => 1,
+      'no_found_rows'  => true,
+
+  );
+     $revision = wp_get_post_revisions($postID,$args);
+     if(is_array($revision)) {
+        $postID = array_values($revision)[0]->ID;
+     }
+     
+ 
+    
+   
+     return get_the_time('F j, Y H:i',$postID); 
+
+
   }
 
 }
