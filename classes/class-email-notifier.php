@@ -133,7 +133,7 @@ class EmailNotifier {
 
       
       $postDate = $this->getPostCreatedDate($postID);
-      $articleIndex = $articleIndex.':'.$postDate.'#';
+      $articleIndex = $articleIndex.'$'.$postDate.'#';
      
 
       $emailAddresses = array();
