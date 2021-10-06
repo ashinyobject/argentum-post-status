@@ -202,7 +202,7 @@ class EmailNotifier {
          $to = array_merge($authorEmails, $emailAddresses);
 
          add_filter( 'wp_mail_content_type', array($this,'setEmailContentType') );
-         //wp_mail($to, $subject, $body);
+         wp_mail($to, $subject, $body);
          remove_filter( 'wp_mail_content_type', array($this,'setEmailContentType') );
      }
  
